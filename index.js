@@ -27,19 +27,15 @@ app.post('/send', function (req, res) {
     throw err;
     var collection = db.collection('foodlog');
     var jsonBody = req.body;
-    collection.insert({"dog" : "boomer" , "log_entry" : new Date() , "weight" : "100gm"}, {safe: true}, function(err, records) {
+    var weight = jsonBody.weight;
+    if(!weight)
+      weight = 99;
+    collection.insert({"dog" : "boomer" , "log_entry" : new Date() , "weight" : "100"}, {safe: true}, function(err, records) {
       if (err) {
         console.log(err);
         return res.status(400).send("Failed");
       }
-      client.messages.create({
-        to: "7138262502",
-        from: "+17135974002",
-        body: "Food is served to boomer.",
-      }, function(err, message) {
-        console.log(message);
-
-      });
+      sendText(weight);
       return res.send("data logged");
 
     });
@@ -47,3 +43,56 @@ app.post('/send', function (req, res) {
 
 
 });
+
+app.get('/log', function (req, res) {
+
+  MongoClient.connect('mongodb://127.0.0.1:27017/smartbowl', function(err, db) {
+    if (err)
+    throw err;
+    var collection = db.collection('foodlog');
+    var jsonBody = req.body;
+    collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).toArray(function(err, records) {
+      if (err) {
+        console.log(err);
+        return res.status(400).send("Failed");
+      }
+
+
+      return res.send(records);
+
+    });
+  });
+
+});
+
+
+
+function sendText(weight){
+
+  MongoClient.connect('mongodb://127.0.0.1:27017/smartbowl', function(err, db) {
+    if (err)
+    throw err;
+    var collection = db.collection('foodlog');
+    var jsonBody = req.body;
+    collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(12).toArray(function(err, records) {
+      if (err) {
+        console.log(err);
+
+      }
+
+
+    });
+  });
+
+
+  // client.messages.create({
+  //   to: "7138262502",
+  //   from: "+17135974002",
+  //   body: "Food is served to boomer.",
+  // }, function(err, message) {
+  //   console.log(message);
+  // });
+
+
+
+}
