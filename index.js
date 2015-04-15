@@ -7,6 +7,7 @@ app.use(express.bodyParser());
 var MongoClient = require('mongodb').MongoClient
 var accountSid = 'AC3bf75f630d9132bcd7d03300527b0dd3';
 var authToken = 'ea04068f880d019e46fb9ce1b19dfa09';
+var path = require('path');
 
 //require the Twilio module and create a REST client
 var client = require('twilio')(accountSid, authToken);
@@ -15,12 +16,14 @@ var dataPushFrequency = 5; //data logged every 5 secs
 var timeCheckLimit = 60/dataPushFrequency; //how far back we want to go
 
 app.use(express.cookieParser());
+app.use(express.static(path.join(__dirname + '/public')));
 
-app.use(express.static(__dirname + '/public/app'));
 app.use(app.router);
 
 app.get('/', function (req, res) {
-  res.send("hello");
+
+  res.sendfile(__dirname + '/index.html');
+
 });
 
 app.post('/send', function (req, res) {
@@ -68,20 +71,22 @@ app.post('/log', function (req, res) {
         }
 
         for(var i = 0 ; i < records.length ; i++){
-          if(records[i].weight < thresholdWeight){ // if weight of the last data point is less than threshold just log it and text the user
-            sendFoodServedText();
-            logFoodWeight(true ,newWeight); //notification sent = true
-            break;
-          }else{  //if the weight is greater than the threshold
+            if(records[i].weight < thresholdWeight && i==0){ // if weight of the last data point is less than threshold just log it and text the user
+              sendFoodServedText();
+              logFoodWeight(true ,newWeight); //notification sent = true
+              break;
+            }else{  //if the weight is greater than the threshold
+
             if(i == timeCheckLimit-1 && records[i].notified == true){
+
               sendFoodNotConsumedText();
               logFoodWeight(true ,newWeight);
               break;
             }
-            if(i == records.length-1){
+            else if(i == records.length-1){
               logFoodWeight(false ,newWeight);
-
             }
+
 
 
 
@@ -90,14 +95,80 @@ app.post('/log', function (req, res) {
 
 
       });
-    }
-    else{
+    }else{
       //Log the bowl weight
       logFoodWeight(false ,newWeight); //notification sent = false
     }
     return res.status(200).send("Data logged");
   });
 });
+
+
+/* Experiment */
+app.post('/log', function (req, res) {
+
+  MongoClient.connect('mongodb://127.0.0.1:27017/smartbowl', function(err, db) {
+    if (err)
+    throw err;
+    var collection = db.collection('foodlog');
+    var jsonBody = req.body;
+    var newWeight = jsonBody.weight;
+    if(!newWeight)
+    newWeight = 0;
+
+    if(newWeight >= thresholdWeight){ //if weight more than threshold run the  logic
+      collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(timeCheckLimit).toArray(function(err, records) {
+        if (err) {
+          console.log(err);
+          return res.status(400).send("Failed");
+        }
+        if(records.length == 0 ){
+          logFoodWeight(true ,newWeight);
+          sendFoodServedText();
+        }
+
+        for(var i = 0 ; i < records.length ; i++){
+            if(records[i].weight < thresholdWeight && i==0){ // if weight of the last data point is less than threshold just log it and text the user
+              sendFoodServedText();
+              logFoodWeight(true ,newWeight); //notification sent = true
+              break;
+            }else{  //if the weight is greater than the threshold
+
+            if(i == timeCheckLimit-1 && records[i].notified == true){
+
+              sendFoodNotConsumedText();
+              logFoodWeight(true ,newWeight);
+              break;
+            }
+            else if(i == records.length-1){
+              logFoodWeight(false ,newWeight);
+            }
+
+
+
+
+          }
+        }
+
+
+      });
+    }else{
+      //Log the bowl weight
+      logFoodWeight(false ,newWeight); //notification sent = false
+    }
+    return res.status(200).send("Data logged");
+  });
+});
+
+
+
+
+
+
+
+
+
+
 
 app.get('/log', function (req, res) {
 
