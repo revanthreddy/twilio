@@ -14,6 +14,10 @@ var client = require('twilio')(accountSid, authToken);
 var thresholdWeight = 100; //weight of the food bowl when food is present
 var dataPushFrequency = 5; //data logged every 5 secs
 var timeCheckLimit = 60/dataPushFrequency; //how far back we want to go
+var minimumTimeBetweenEvents = 60000 ; // 1 min = 60000 milli seconds
+var FOOD_SERVED = 1;
+var FOOD_NOT_CONSUMED = 2;
+var NO_EVENT = 0
 
 app.use(express.cookieParser());
 app.use(express.static(path.join(__dirname + '/public')));
@@ -48,60 +52,60 @@ app.post('/send', function (req, res) {
   });
 });
 
-app.post('/log', function (req, res) {
-
-  MongoClient.connect('mongodb://127.0.0.1:27017/smartbowl', function(err, db) {
-    if (err)
-    throw err;
-    var collection = db.collection('foodlog');
-    var jsonBody = req.body;
-    var newWeight = jsonBody.weight;
-    if(!newWeight)
-    newWeight = 0;
-
-    if(newWeight >= thresholdWeight){ //if weight more than threshold run the  logic
-      collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(timeCheckLimit).toArray(function(err, records) {
-        if (err) {
-          console.log(err);
-          return res.status(400).send("Failed");
-        }
-        if(records.length == 0 ){
-          logFoodWeight(true ,newWeight);
-          sendFoodServedText();
-        }
-
-        for(var i = 0 ; i < records.length ; i++){
-            if(records[i].weight < thresholdWeight && i==0){ // if weight of the last data point is less than threshold just log it and text the user
-              sendFoodServedText();
-              logFoodWeight(true ,newWeight); //notification sent = true
-              break;
-            }else{  //if the weight is greater than the threshold
-
-            if(i == timeCheckLimit-1 && records[i].notified == true){
-
-              sendFoodNotConsumedText();
-              logFoodWeight(true ,newWeight);
-              break;
-            }
-            else if(i == records.length-1){
-              logFoodWeight(false ,newWeight);
-            }
-
-
-
-
-          }
-        }
-
-
-      });
-    }else{
-      //Log the bowl weight
-      logFoodWeight(false ,newWeight); //notification sent = false
-    }
-    return res.status(200).send("Data logged");
-  });
-});
+// app.post('/log', function (req, res) {
+//
+//   MongoClient.connect('mongodb://127.0.0.1:27017/smartbowl', function(err, db) {
+//     if (err)
+//     throw err;
+//     var collection = db.collection('foodlog');
+//     var jsonBody = req.body;
+//     var newWeight = jsonBody.weight;
+//     if(!newWeight)
+//     newWeight = 0;
+//
+//     if(newWeight >= thresholdWeight){ //if weight more than threshold run the  logic
+//       collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(timeCheckLimit).toArray(function(err, records) {
+//         if (err) {
+//           console.log(err);
+//           return res.status(400).send("Failed");
+//         }
+//         if(records.length == 0 ){
+//           logFoodWeight(true ,newWeight);
+//           sendFoodServedText();
+//         }
+//
+//         for(var i = 0 ; i < records.length ; i++){
+//             if(records[i].weight < thresholdWeight && i==0){ // if weight of the last data point is less than threshold just log it and text the user
+//               sendFoodServedText();
+//               logFoodWeight(true ,newWeight); //notification sent = true
+//               break;
+//             }else{  //if the weight is greater than the threshold
+//
+//             if(i == timeCheckLimit-1 && records[i].notified == true){
+//
+//               sendFoodNotConsumedText();
+//               logFoodWeight(true ,newWeight);
+//               break;
+//             }
+//             else if(i == records.length-1){
+//               logFoodWeight(false ,newWeight);
+//             }
+//
+//
+//
+//
+//           }
+//         }
+//
+//
+//       });
+//     }else{
+//       //Log the bowl weight
+//       logFoodWeight(false ,newWeight); //notification sent = false
+//     }
+//     return res.status(200).send("Data logged");
+//   });
+// });
 
 
 /* Experiment */
@@ -117,44 +121,48 @@ app.post('/log', function (req, res) {
     newWeight = 0;
 
     if(newWeight >= thresholdWeight){ //if weight more than threshold run the  logic
-      collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(timeCheckLimit).toArray(function(err, records) {
+      collection.find({"notified" : true}).sort({"log_entry" : -1}).limit(1).toArray(function(err, notifiedRecords) {
         if (err) {
           console.log(err);
           return res.status(400).send("Failed");
         }
-        if(records.length == 0 ){
-          logFoodWeight(true ,newWeight);
+        if(notifiedRecords.length == 0 ){
+          logFoodWeight(true ,newWeight , FOOD_SERVED);
           sendFoodServedText();
-        }
-
-        for(var i = 0 ; i < records.length ; i++){
-            if(records[i].weight < thresholdWeight && i==0){ // if weight of the last data point is less than threshold just log it and text the user
-              sendFoodServedText();
-              logFoodWeight(true ,newWeight); //notification sent = true
-              break;
-            }else{  //if the weight is greater than the threshold
-
-            if(i == timeCheckLimit-1 && records[i].notified == true){
-
-              sendFoodNotConsumedText();
-              logFoodWeight(true ,newWeight);
-              break;
-            }
-            else if(i == records.length-1){
-              logFoodWeight(false ,newWeight);
-            }
+        }else{
+          var currentTime = new Date();
+          var lastNotifiedTime = new Date(notifiedRecords[0].log_entry);
 
 
+            collection.find().sort({"log_entry" : -1}).limit(1).toArray(function(err, records) {
+              if (err) {
+                console.log(err);
+                return res.status(400).send("Failed");
+              }
+              if(records[0].weight > thresholdWeight){
+                if((currentTime.getTime() - lastNotifiedTime.getTime()) < 60000 )
+                  logFoodWeight(false , newWeight , NO_EVENT);
+                else{
+                  logFoodWeight(true , newWeight , FOOD_NOT_CONSUMED);
+                  sendFoodNotConsumedText();
+                }
+
+              }
+              else if(records[0].weight < thresholdWeight){
+                logFoodWeight(true , newWeight , FOOD_SERVED);
+                sendFoodServedText();
+              }
+
+            });
 
 
-          }
         }
 
 
       });
     }else{
       //Log the bowl weight
-      logFoodWeight(false ,newWeight); //notification sent = false
+      logFoodWeight(false ,newWeight, NO_EVENT); //notification sent = false
     }
     return res.status(200).send("Data logged");
   });
@@ -177,12 +185,16 @@ app.get('/log', function (req, res) {
     throw err;
     var collection = db.collection('foodlog');
     var jsonBody = req.body;
-    collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).toArray(function(err, records) {
+    collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(10).toArray(function(err, records) {
       if (err) {
         console.log(err);
         return res.status(400).send("Failed");
       }
+      var currentTime = new Date();
 
+      //console.log(currentTime.getTime() - (new Date(records[0].log_entry.toISOString)).getTime);
+      var recordTime = new Date(records[0].log_entry);
+      console.log(currentTime.getTime() - recordTime.getTime());
 
       return res.send(records);
 
@@ -191,12 +203,12 @@ app.get('/log', function (req, res) {
 
 });
 
-function logFoodWeight(isNotified,weight){
+function logFoodWeight(isNotified,weight , eventType){
   MongoClient.connect('mongodb://127.0.0.1:27017/smartbowl', function(err, db) {
     if (err)
     throw err;
     var collection = db.collection('foodlog');
-    collection.insert({"dog" : "boomer" , "log_entry" : new Date() , "weight" : weight , "notified" : isNotified}, {safe: true}, function(err, numOfRecordsInserted) {
+    collection.insert({"dog" : "boomer" , "log_entry" : new Date() , "weight" : weight , "notified" : isNotified , "event" : eventType}, {safe: true}, function(err, numOfRecordsInserted) {
       if (err) {
         console.log(err);
 
