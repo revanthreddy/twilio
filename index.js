@@ -27,10 +27,16 @@ app.use(express.static(path.join(__dirname + '/public')));
 app.use(app.router);
 
 app.get('/', function (req, res) {
-
   res.sendfile(__dirname + '/index.html');
 
 });
+
+app.get('/temp', function (req, res) {
+
+  res.sendfile(__dirname + '/public/temp.html');
+
+});
+
 
 io.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
