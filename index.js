@@ -132,6 +132,7 @@ app.post('/log', function (req, res) {
     throw err;
     var collection = db.collection('foodlog');
     var jsonBody = req.body;
+    console.log(jsonBody);
     var newWeight = jsonBody.weight;
     if(!newWeight)
     newWeight = 0;
