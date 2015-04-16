@@ -108,16 +108,17 @@
     	})
     } );
 
-    // $.get( "/log", function( logs ) {
-    //   for(var i = 0 ; i < logs.length ; i++){
-    //     var data = { one: logs[i].weight };
-    //
-    //   	graph.series.addData(data);
-    //   }
-    //
-    // });
+    $.get( "/log", function( logs ) {
 
-    graph.render();
+      for(var i = 0 ; i < logs.length ; i++){
+        var data = { one: logs[i].weight };
+
+      	graph.series.addData(data);
+      }
+      graph.render();
+    });
+
+
   	}
 
 
