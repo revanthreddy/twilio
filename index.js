@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
+var http = require('http').Server(app);
+var io = require('socket.io').listen(server);
 server.listen(3000);
 app.use(express.bodyParser());
 //app.use(express.methodOverride());
@@ -29,6 +31,14 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 
 });
+
+io.on('connection', function (socket) {
+  socket.emit('news', { hello: 'world' });
+  socket.on('my other event', function (data) {
+    console.log(data);
+  });
+});
+
 
 app.post('/send', function (req, res) {
 
@@ -185,18 +195,16 @@ app.get('/log', function (req, res) {
     throw err;
     var collection = db.collection('foodlog');
     var jsonBody = req.body;
-    collection.find({"dog" : "boomer"}).sort({"log_entry" : -1}).limit(10).toArray(function(err, records) {
+    collection.find({"dog" : "boomer"}, {"log_entry" : 1 , "weight" : 1 , "notified" : 1}).sort({"log_entry" : -1}).limit(100).toArray(function(err, records) {
       if (err) {
         console.log(err);
         return res.status(400).send("Failed");
       }
-      var currentTime = new Date();
-
-      //console.log(currentTime.getTime() - (new Date(records[0].log_entry.toISOString)).getTime);
-      var recordTime = new Date(records[0].log_entry);
-      console.log(currentTime.getTime() - recordTime.getTime());
-
-      return res.send(records);
+      var logs = [];
+      for(var i = records.length-1 ; i >= 0 ; i--){
+        logs.push({"created" : new Date(records[i].log_entry) , "weight" : records[i].weight , "notified" : records[i].notified});
+      }
+      return res.status(200).send(logs);
 
     });
   });
