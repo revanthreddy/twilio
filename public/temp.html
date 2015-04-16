@@ -76,7 +76,7 @@
     <script src="/js/bootstrap.min.js"></script>
     <script>
     var graph;
-    var socket = io('http://localhost:3000');
+    var socket = io('http://ec2-54-149-172-249.us-west-2.compute.amazonaws.com:3000/');
     socket.on('news', function (data) {
       socket.emit('my other event', { my: 'data' });
     });
