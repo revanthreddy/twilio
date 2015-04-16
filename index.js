@@ -28,20 +28,22 @@ app.use(app.router);
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
-
 });
 
 app.get('/temp', function (req, res) {
-
   res.sendfile(__dirname + '/public/temp.html');
-
 });
+
+app.get('/live', function (req, res) {
+  res.sendfile(__dirname + '/public/livefeed.html');
+});
+
 
 
 io.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
   socket.on('my other event', function (data) {
-    console.log(data);
+    //console.log(data);
   });
 });
 
@@ -226,8 +228,8 @@ function logFoodWeight(isNotified,weight , eventType){
     collection.insert({"dog" : "boomer" , "log_entry" : new Date() , "weight" : weight , "notified" : isNotified , "event" : eventType}, {safe: true}, function(err, numOfRecordsInserted) {
       if (err) {
         console.log(err);
-
       }
+      io.sockets.emit("log", {"weight" : weight});
       //console.log("data logged for "+numOfRecordsInserted);
 
     });

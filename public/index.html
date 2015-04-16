@@ -68,7 +68,7 @@
 
 
 
-
+		var lineChartData;
   	window.onload = function(){
   		var ctx = document.getElementById("canvas").getContext("2d");
   		$.get( "/log", function( logs ) {
@@ -82,7 +82,7 @@
 
   				yLabels.push(logs[i].weight);
   			}
-  			var lineChartData = {
+  			lineChartData = {
   				labels : xLabels,
   				datasets : [
   					{

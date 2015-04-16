@@ -1,0 +1,75 @@
+
+<!doctype>
+<head>
+	<link type="text/css" rel="stylesheet" href="/css/graph.css">
+	<link type="text/css" rel="stylesheet" href="/css/detail.css">
+	<link type="text/css" rel="stylesheet" href="/css/legend.css">
+	<link type="text/css" rel="stylesheet" href="/css/extensions.css">
+
+	<script src="/js/d3.v3.js"></script>
+	<script src="/js/rickshaw.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+</head>
+<body>
+
+<div id="content">
+	<div id="chart"></div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+
+  var socket = io('http://localhost:3000');
+  socket.on('news', function (data) {
+    socket.emit('my other event', { my: 'data' });
+  });
+
+  socket.on('log', function (data) {
+    var data = { one: data.weight };
+
+  	graph.series.addData(data);
+    graph.render();
+  });
+
+
+var tv = 250;
+
+// instantiate our graph!
+var graph = new Rickshaw.Graph( {
+	element: document.getElementById("chart"),
+	width: 900,
+	height: 500,
+	renderer: 'line',
+	series: new Rickshaw.Series.FixedDuration([{ name: 'one' }], undefined, {
+		timeInterval: tv,
+		maxDataPoints: 100,
+		timeBase: new Date().getTime() / 1000
+	})
+} );
+
+// $.get( "/log", function( logs ) {
+//   for(var i = 0 ; i < logs.length ; i++){
+//     var data = { one: logs[i].weight };
+//
+//   	graph.series.addData(data);
+//   }
+//
+// });
+
+graph.render();
+
+// add some data every so often
+//
+// var i = 0;
+// var iv = setInterval( function() {
+//
+// 	var data = { one: Math.floor(Math.random() * 40) + 120 };
+//
+// 	graph.series.addData(data);
+// 	graph.render();
+//
+// }, tv );
+
+</script>
+
+</body>
