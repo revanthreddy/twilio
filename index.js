@@ -13,7 +13,7 @@ var path = require('path');
 
 //require the Twilio module and create a REST client
 var client = require('twilio')(accountSid, authToken);
-var thresholdWeight = 100; //weight of the food bowl when food is present
+var thresholdWeight = 200; //weight of the food bowl when food is present
 var dataPushFrequency = 5; //data logged every 5 secs
 var timeCheckLimit = 60/dataPushFrequency; //how far back we want to go
 var minimumTimeBetweenEvents = 60000 ; // 1 min = 60000 milli seconds
@@ -238,22 +238,22 @@ function logFoodWeight(isNotified,weight , eventType){
 
 function sendFoodServedText(weight){
   console.log("Food has been served ");
-  // client.messages.create({
-  //   to: "7138262502",
-  //   from: "+17135974002",
-  //   body: "Food is served to boomer.",
-  // }, function(err, message) {
-  //   console.log(message);
-  // });
+  client.messages.create({
+    to: "7138262502",
+    from: "+17135974002",
+    body: "Food is served to boomer.",
+  }, function(err, message) {
+    console.log(message);
+  });
 }
 
 function sendFoodNotConsumedText(weight){
   console.log("Boomer did not eat his food");
-  // client.messages.create({
-  //   to: "7138262502",
-  //   from: "+17135974002",
-  //   body: "Food is served to boomer.",
-  // }, function(err, message) {
-  //   console.log(message);
-  // });
+  client.messages.create({
+    to: "7138262502",
+    from: "+17135974002",
+    body: "Food is served to boomer.",
+  }, function(err, message) {
+    console.log(message);
+  });
 }
