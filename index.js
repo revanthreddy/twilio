@@ -252,7 +252,7 @@ function sendFoodNotConsumedText(weight){
   client.messages.create({
     to: "7138262502",
     from: "+17135974002",
-    body: "Food is served to boomer.",
+    body: "Boomer did not consume his food.",
   }, function(err, message) {
     console.log(message);
   });
