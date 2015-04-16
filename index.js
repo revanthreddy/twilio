@@ -238,22 +238,22 @@ function logFoodWeight(isNotified,weight , eventType){
 
 function sendFoodServedText(weight){
   console.log("Food has been served ");
-  // client.messages.create({
-  //   to: "7138262502",
-  //   from: "+17135974002",
-  //   body: "Food is served to boomer.",
-  // }, function(err, message) {
-  //   console.log(message);
-  // });
+  client.messages.create({
+    to: "7138262502",
+    from: "+17135974002",
+    body: "Food is served to boomer.",
+  }, function(err, message) {
+    console.log(message);
+  });
 }
 
 function sendFoodNotConsumedText(weight){
   console.log("Boomer did not eat his food");
-  // client.messages.create({
-  //   to: "7138262502",
-  //   from: "+17135974002",
-  //   body: "Boomer did not eat his food.",
-  // }, function(err, message) {
-  //   console.log(message);
-  // });
+  client.messages.create({
+    to: "7138262502",
+    from: "+17135974002",
+    body: "Boomer did not eat his food.",
+  }, function(err, message) {
+    console.log(message);
+  });
 }

@@ -71,37 +71,42 @@
 		var lineChartData;
   	window.onload = function(){
   		var ctx = document.getElementById("canvas").getContext("2d");
-  		$.get( "/log", function( logs ) {
+			setInterval( function() {
 
-        var xLabels = [];
-  			var yLabels = []
-  			for(var i = 0 ; i < logs.length ; i++){
 
-  				// xLabels.push(logs[i].created);
+			}, 5000 );
+
+			$.get( "/log", function( logs ) {
+
+				var xLabels = [];
+				var yLabels = []
+				for(var i = 0 ; i < logs.length ; i++){
+
+					// xLabels.push(logs[i].created);
 					xLabels.push(i+1);
 
-  				yLabels.push(logs[i].weight);
-  			}
-  			lineChartData = {
-  				labels : xLabels,
-  				datasets : [
-  					{
-  						label: "My First dataset",
-  						fillColor : "rgba(220,220,220,0.2)",
-  						strokeColor : "rgba(220,220,220,1)",
-  						pointColor : "rgba(220,220,220,1)",
-  						pointStrokeColor : "#fff",
-  						pointHighlightFill : "#fff",
-  						pointHighlightStroke : "rgba(220,220,220,1)",
-  						data : yLabels
-  					}
-  				]
+					yLabels.push(logs[i].weight);
+				}
+				lineChartData = {
+					labels : xLabels,
+					datasets : [
+						{
+							label: "My First dataset",
+							fillColor : "rgba(220,220,220,0.2)",
+							strokeColor : "rgba(220,220,220,1)",
+							pointColor : "rgba(220,220,220,1)",
+							pointStrokeColor : "#fff",
+							pointHighlightFill : "#fff",
+							pointHighlightStroke : "rgba(220,220,220,1)",
+							data : yLabels
+						}
+					]
 
-  			}
-  			window.myLine = new Chart(ctx).Line(lineChartData, {
-  				responsive: true
-  			});
-  		});
+				}
+				window.myLine = new Chart(ctx).Line(lineChartData, {
+					responsive: true
+				});
+			});
 
   	}
 
