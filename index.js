@@ -245,10 +245,24 @@ function sendFoodServedText(weight){
   }, function(err, message) {
     console.log(message);
   });
+  client.messages.create({
+    to: "7202358352",
+    from: "+17135974002",
+    body: "Food is served to boomer.",
+  }, function(err, message) {
+    console.log(message);
+  });
+  client.messages.create({
+    to: "5404499765",
+    from: "+17135974002",
+    body: "Food is served to boomer.",
+  }, function(err, message) {
+    console.log(message);
+  });
 }
 
 function sendFoodNotConsumedText(weight){
-  console.log("Boomer did not eat his food");
+  console.log("Boomer did not eat his food ");
   client.messages.create({
     to: "7138262502",
     from: "+17135974002",
@@ -256,4 +270,19 @@ function sendFoodNotConsumedText(weight){
   }, function(err, message) {
     console.log(message);
   });
+  client.messages.create({
+    to: "7202358352",
+    from: "+17135974002",
+    body: "Boomer did not eat his food.",
+  }, function(err, message) {
+    console.log(message);
+  });
+  client.messages.create({
+    to: "5404499765",
+    from: "+17135974002",
+    body: "Boomer did not eat his food.",
+  }, function(err, message) {
+    console.log(message);
+  });
+  
 }
